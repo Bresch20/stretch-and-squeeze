@@ -695,6 +695,12 @@ footer.end b{color:var(--ink);font-weight:600}
     refresh(); markCells(); queueSave();
   });
 
+  // ---- shipped board --------------------------------------------------
+  // The eighteen zones exactly as saved in the source artifact (its shared
+  // DB, revision 208). This is the baseline a fresh visitor sees; once they
+  // make an edit, their localStorage copy takes over instead.
+  var SHIPPED = {"balls":{"off:att:-1":[327,50],"off:att:0":[327,130],"off:att:1":[327,210],"off:def:-1":[82,29],"off:def:0":[78,130],"off:def:1":[78,210],"off:mid:-1":[232,36],"off:mid:0":[183,131],"off:mid:1":[200,210],"on:att:-1":[327,50],"on:att:0":[319,129],"on:att:1":[339,215],"on:def:-1":[78,50],"on:def:0":[96,145],"on:def:1":[81,230],"on:mid:-1":[233,32],"on:mid:0":[200,130],"on:mid:1":[224,228]},"names":{},"shapes":{"off:att:-1":{"CAM":[273,60],"CB":[182,97.6],"CDM":[233,89],"GK":[50,128.56],"LB":[208,34],"LM":[307,38],"RB":[199,168],"RM":[262,144],"ST":[302,90]},"off:att:0":{"CAM":[274,120],"CB":[198,132],"CDM":[239,92],"GK":[50,130],"LB":[199,69],"LM":[281,69],"RB":[230,183],"RM":[287,200],"ST":[303,143]},"off:att:1":{"CAM":[264,200],"CB":[197,173],"CDM":[244,159],"GK":[50,131.44],"LB":[203,103],"LM":[272,117],"RB":[210,223],"RM":[306,226],"ST":[293,165]},"off:def:-1":{"CAM":[122,114],"CB":[64,85],"CDM":[94,83],"GK":[24,114],"LB":[62,45],"LM":[104,52],"RB":[62,132],"RM":[103,148],"ST":[182,116]},"off:def:0":{"CAM":[108,141],"CB":[54,130],"CDM":[90,116],"GK":[28,130],"LB":[59,96],"LM":[96,83],"RB":[59,162],"RM":[85,172],"ST":[158,130]},"off:def:1":{"CAM":[112,140],"CB":[61,162],"CDM":[90,178],"GK":[28,131.44],"LB":[64,120],"LM":[93,92],"RB":[62,198],"RM":[104,216],"ST":[194,133]},"off:mid:-1":{"CAM":[180,62],"CB":[119,72],"CDM":[150,90],"GK":[45,128.56],"LB":[144,33],"LM":[207,25],"RB":[126,155],"RM":[181,142],"ST":[214,81.75999999999999]},"off:mid:0":{"CAM":[167,143],"CB":[110,130],"CDM":[140,122],"GK":[45,130],"LB":[124,90],"LM":[161,82],"RB":[125,168],"RM":[159,183],"ST":[211,101]},"off:mid:1":{"CAM":[167,124],"CB":[120,156],"CDM":[158,176.07999999999998],"GK":[41,146],"LB":[130,110.4],"LM":[196,89.976],"RB":[121,214],"RM":[177,201],"ST":[200,166]},"on:att:-1":{"CAM":[295,75],"CB":[189,124],"CDM":[255,135],"GK":[64,125.68],"LB":[234,33],"LM":[332,30],"RB":[253,204],"RM":[332,203],"ST":[339,105]},"on:att:0":{"CAM":[293,171],"CB":[198,132],"CDM":[272,99],"GK":[64,130],"LB":[252,39],"LM":[336,28],"RB":[256,217],"RM":[338,232],"ST":[337,128]},"on:att:1":{"CAM":[285,168],"CB":[200,137],"CDM":[259,112],"GK":[64,134.32],"LB":[266,52],"LM":[325,83],"RB":[246,231],"RM":[332,230],"ST":[331,164]},"on:def:-1":{"CAM":[162,84],"CB":[76,114.16],"CDM":[118,144],"GK":[36,112],"LB":[65,42],"LM":[206,30],"RB":[81,192.06],"RM":[200,230],"ST":[233,133]},"on:def:0":{"CAM":[174,150],"CB":[76,148],"CDM":[136,104],"GK":[40,130],"LB":[88,52.10000000000001],"LM":[200,30],"RB":[105,229],"RM":[200,230],"ST":[268,130]},"on:def:1":{"CAM":[154,181],"CB":[86,167],"CDM":[132,110],"GK":[40,134.32],"LB":[89,71],"LM":[174,53],"RB":[67,224],"RM":[181,237],"ST":[244,167]},"on:mid:-1":{"CAM":[263,89],"CB":[155,122],"CDM":[207,127],"GK":[54,125.68],"LB":[143,20],"LM":[216,21],"RB":[163,206],"RM":[261,232],"ST":[319,113]},"on:mid:0":{"CAM":[243,108],"CB":[116,148],"CDM":[180,130],"GK":[54,130],"LB":[162,51],"LM":[231,20],"RB":[163,227],"RM":[252,234],"ST":[311,154]},"on:mid:1":{"CAM":[248,151],"CB":[145,169],"CDM":[197,127],"GK":[54,134.32],"LB":[158,74],"LM":[244,50],"RB":[144,229.44],"RM":[208,226],"ST":[297,166]}},"touched":{"off:att:-1":true,"off:att:0":true,"off:att:1":true,"off:def:-1":true,"off:def:0":true,"off:def:1":true,"off:mid:-1":true,"off:mid:0":true,"off:mid:1":true,"on:att:0":true,"on:att:1":true,"on:def:0":true,"on:def:1":true,"on:mid:-1":true,"on:mid:0":true,"on:mid:1":true}};
+
   // ---- persistence -----------------------------------------------------
   // The Claude runtime's shared DB isn't here on a plain web host, so this
   // build just keeps everything in this browser via localStorage. Edits,
@@ -794,10 +800,12 @@ footer.end b{color:var(--ink);font-weight:600}
 
   paint(curPos, cur, false);
   phase.textContent = "BUILD — CENTRE";
+  var hadLocal = false;
   localTry(function(){
     var raw = localStorage.getItem("shape-overrides");
-    if (raw) { absorb(JSON.parse(raw)); }
+    if (raw) { absorb(JSON.parse(raw)); hadLocal = true; }
   });
+  if (!hadLocal) absorb(SHIPPED);   // start from the artifact's saved board
   seedAll();
   applyNames(); syncNameInputs();
   refresh(); markCells();
