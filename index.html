@@ -684,14 +684,15 @@ footer.end b{color:var(--ink);font-weight:600}
     setSave("ok","Mirrored to the " + SIDEWORD[String(dstLane)]);
   });
   document.getElementById("btn-resetzone").addEventListener("click", function(){
-    var k = keyOf(cur.side,cur.third,cur.lane);
-    overrides[k] = computed(cur.side,cur.third,cur.lane);
-    balls[k] = ballHome(cur.third, cur.lane);
-    delete touched[k];
+    var k = keyOf(cur.side,cur.third,cur.lane), s = SHIPPED.shapes[k], b = SHIPPED.balls[k];
+    overrides[k] = s ? JSON.parse(JSON.stringify(s)) : computed(cur.side,cur.third,cur.lane);
+    balls[k] = b ? [b[0], b[1]] : ballHome(cur.third, cur.lane);
+    if (SHIPPED.touched[k]) touched[k] = true; else delete touched[k];
     refresh(); markCells(); queueSave();
   });
   document.getElementById("btn-resetall").addEventListener("click", function(){
-    overrides = {}; balls = {}; touched = {}; seedAll();
+    overrides = {}; balls = {}; touched = {};
+    absorb(SHIPPED); seedAll();
     refresh(); markCells(); queueSave();
   });
 
