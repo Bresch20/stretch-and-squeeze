@@ -84,12 +84,18 @@ button:focus-visible{outline:3px solid var(--space);outline-offset:2px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--ink2);flex:none}
 .dot.ok{background:var(--space)} .dot.busy{background:var(--accent)}
 
-.stage{padding:12px 0 10px;display:grid;grid-template-columns:minmax(0,1fr) 176px;gap:16px;align-items:stretch}
-@media (max-width:560px){.stage{grid-template-columns:minmax(0,1fr);align-items:start}}
-figure{margin:0;min-height:0;display:flex;flex-direction:column}
-.padbox{flex:1 1 auto;min-height:190px;display:flex;align-items:center;justify-content:center}
+/* pitch on top, zone grid underneath, both inside one screen */
+.stage{padding:10px 0;display:flex;flex-direction:column;gap:12px;min-height:0}
+figure{margin:0;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.padbox{flex:1 1 auto;min-height:180px;display:flex;align-items:center;justify-content:center}
 svg.fig{display:block;width:100%;height:100%;max-height:100%;max-width:900px}
-@media (max-width:560px){.padbox{height:auto}svg.fig{height:auto}}
+aside{flex:none;display:flex;gap:8px 18px;align-items:flex-start;flex-wrap:wrap}
+.zonepick{flex:0 0 auto;width:min(360px,100%)}
+.mcap{flex:1 1 220px}
+@media (max-width:520px){
+  .padbox{min-height:160px}
+  .zonepick{width:100%}
+}
 svg.fig.editing{touch-action:none}
 svg.fig.editing .p{cursor:grab}
 svg.fig.editing .p.drag{cursor:grabbing}
@@ -113,7 +119,7 @@ svg.fig.editing #ballring{opacity:.45}
 .zcell[data-edited="true"] span{color:var(--space)}
 .zcell[aria-pressed="true"]{background:var(--accent)}
 .zcell[aria-pressed="true"] span{color:var(--accent-ink)}
-.mcap{font-family:var(--mono);font-size:10.5px;line-height:1.55;letter-spacing:.02em;color:var(--ink2);margin:11px 0 0}
+.mcap{font-family:var(--mono);font-size:10.5px;line-height:1.55;letter-spacing:.02em;color:var(--ink2);margin:0}
 .mcap b{color:var(--ink);font-weight:600;display:block;margin-bottom:4px;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
 
 .p{transition:transform 1.25s cubic-bezier(.45,.02,.2,1)}
