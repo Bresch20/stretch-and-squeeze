@@ -349,7 +349,7 @@ svg.pxfig.adjust #pxTeam .p.drag{cursor:grabbing;transition:none}
   <div class="pxhead">
     <p class="eyebrow">Predict &middot; any ball position</p>
     <h2>Where everyone goes</h2>
-    <p class="dek">Your eighteen zones plus fourteen hand corrections, fitted so the shape follows the ball <b>anywhere</b> on the pitch &mdash; not just the nine squares. Drag the ball.</p>
+    <p class="dek">Your eighteen zones plus sixteen hand corrections, fitted so the shape follows the ball <b>anywhere</b> on the pitch &mdash; not just the nine squares. Drag the ball.</p>
   </div>
 
   <div class="pxbar">
@@ -436,7 +436,7 @@ svg.pxfig.adjust #pxTeam .p.drag{cursor:grabbing;transition:none}
       <dt>Drift</dt><dd id="px-r-drift">avg 15 px from nearest saved shape</dd>
     </dl>
   </div>
-  <p class="pxnote">Per player, a plane <b>pos = a + b&middot;ballX + c&middot;ballY</b> is fit through your saved shapes (19 off the ball, 13 on). <b>Shape rules</b>: the striker stays out of our third and in a central band off the ball, and AM never sits inline with DM. Held-out accuracy about <b>2&nbsp;m</b> per player off the ball, 2.5&nbsp;m on it. Nothing here changes your Board tab &mdash; corrections you <i>Capture</i> and send back get folded into the next version.</p>
+  <p class="pxnote">Per player, a plane <b>pos = a + b&middot;ballX + c&middot;ballY</b> is fit through your saved shapes (19 off the ball, 15 on). <b>Shape rules</b>: the striker stays out of our third and in a central band off the ball, and AM never sits inline with DM. Held-out accuracy about <b>2&nbsp;m</b> per player off the ball, 2.4&nbsp;m on it. Nothing here changes your Board tab &mdash; corrections you <i>Capture</i> and send back get folded into the next version.</p>
 
   <div class="capbox" id="px-capbox" hidden>
     <div class="caphead">
@@ -998,7 +998,9 @@ svg.pxfig.adjust #pxTeam .p.drag{cursor:grabbing;transition:none}
     {"side":"on","ball":[266,97],"shape":{"GK":[58,127],"LB":[195,38],"CB":[164,130],"RB":[204,213],"CDM":[222,142],"LM":[282,34],"CAM":[248,95],"RM":[292,224],"ST":[319,128]}},
     {"side":"on","ball":[205,123],"shape":{"GK":[52,128],"LB":[157,46],"CB":[135,138],"RB":[161,216],"CDM":[192,122],"LM":[249,36],"CAM":[242,81],"RM":[254,228],"ST":[292,152]}},
     {"side":"on","ball":[177,172],"shape":{"GK":[49,130],"LB":[143,57],"CB":[133,120],"RB":[139,223],"CDM":[160,172],"LM":[233,44],"CAM":[210,117],"RM":[232,231],"ST":[284,151]}},
-    {"side":"on","ball":[314,134],"shape":{"GK":[63,131],"LB":[233,43],"CB":[187,136],"RB":[234,220],"CDM":[251,119],"LM":[308,43],"CAM":[275,168],"RM":[313,224],"ST":[335,136]}}
+    {"side":"on","ball":[314,134],"shape":{"GK":[63,131],"LB":[233,43],"CB":[187,136],"RB":[234,220],"CDM":[251,119],"LM":[308,43],"CAM":[275,168],"RM":[313,224],"ST":[335,136]}},
+    {"side":"on","ball":[379,232],"shape":{"GK":[66,140],"LB":[290,59],"CB":[221,152],"RB":[270,236],"CDM":[286,114],"LM":[337,67],"CAM":[333,171],"RM":[384,246],"ST":[347,122]}},
+    {"side":"on","ball":[386,36],"shape":{"GK":[66,126],"LB":[271,20],"CB":[220,114],"RB":[290,206],"CDM":[290,129],"LM":[382,19],"CAM":[336,98],"RM":[367,217],"ST":[348,153]}}
   ];
   CORR.forEach(function(c){ anchors[c.side].push({ ball:c.ball, shape:c.shape }); });
 
