@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Stretch and Squeeze</title>
-<meta name="description" content="Our 3–4–1, unit by unit — eighteen shapes across three thirds and three lanes, with the ball and without it.">
+<meta name="description" content="Our 3–4–1, unit by unit — eighteen shapes across three thirds and three lanes, plus a model that predicts the shape for any ball position.">
 <meta name="theme-color" content="#E7E9E3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111309" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
@@ -27,7 +27,7 @@ img{max-width:100%}
 :root{
   --paper:#E7E9E3; --panel:#F2F3EE; --ink:#14170F; --ink2:#5C6252;
   --rule:#14170F; --hair:#B9BEB0; --accent:#CF4310; --accent-ink:#FFF3EA;
-  --space:#22705E; --grass:#DBE0D3; --pitchline:#9AA28D;
+  --space:#22705E; --grass:#DBE0D3; --pitchline:#9AA28D; --warn:#B26B00;
   --display:"Archivo","Helvetica Neue",Arial,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
@@ -35,13 +35,13 @@ img{max-width:100%}
   :root:not([data-theme="light"]){
     --paper:#111309; --panel:#1A1E13; --ink:#EAECE1; --ink2:#969E88;
     --rule:#3B4230; --hair:#333A27; --accent:#FF7A29; --accent-ink:#170B02;
-    --space:#4FC8A6; --grass:#191D12; --pitchline:#4A5239;
+    --space:#4FC8A6; --grass:#191D12; --pitchline:#4A5239; --warn:#E9A23B;
   }
 }
 :root[data-theme="dark"]{
   --paper:#111309; --panel:#1A1E13; --ink:#EAECE1; --ink2:#969E88;
   --rule:#3B4230; --hair:#333A27; --accent:#FF7A29; --accent-ink:#170B02;
-  --space:#4FC8A6; --grass:#191D12; --pitchline:#4A5239;
+  --space:#4FC8A6; --grass:#191D12; --pitchline:#4A5239; --warn:#E9A23B;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--display);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
@@ -56,6 +56,13 @@ header{border-bottom:2px solid var(--rule);padding-top:12px}
 .titlerow{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
 .dek{margin:0;color:var(--ink2);font-size:13px;max-width:56ch}
 .dek b{color:var(--ink);font-weight:600}
+
+/* ---- tab bar ---- */
+.tabs{position:sticky;top:0;z-index:20;display:flex;background:var(--paper);border-bottom:2px solid var(--rule);padding-top:env(safe-area-inset-top,0)}
+.tabs button{flex:1;appearance:none;border:0;background:transparent;color:var(--ink2);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:13px 8px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs button+button{border-left:1px solid var(--hair)}
+.tabs button:focus-visible{outline:3px solid var(--space);outline-offset:-3px}
 
 /* everything above the fold lives in one viewport-tall column */
 .app{min-height:100svh;display:flex;flex-direction:column}
@@ -105,7 +112,6 @@ svg.fig.editing #ball.drag{cursor:grabbing}
 svg.fig.editing #ballring{opacity:.45}
 .legend{margin:0;max-width:70ch;font-size:13.5px;line-height:1.5;color:var(--ink2);border-top:2px solid var(--rule);padding-top:12px}
 .legend b{color:var(--ink);font-weight:600}
-.notes{border-top:1px solid var(--hair)}
 
 .zonepick{border:2px solid var(--rule)}
 .zhead{display:grid;grid-template-columns:34px repeat(3,minmax(0,1fr));border-bottom:2px solid var(--rule)}
@@ -144,11 +150,54 @@ svg.fig.editing #ballring{opacity:.45}
 footer.end{border-top:2px solid var(--rule);padding:20px 0 52px;margin-top:16px}
 footer.end p{margin:0 0 8px;font-size:13px;color:var(--ink2);max-width:74ch}
 footer.end b{color:var(--ink);font-weight:600}
+
+/* ---- Predict tab ---- */
+#tab-predict{padding-bottom:calc(48px + env(safe-area-inset-bottom,0))}
+.pxhead{padding:14px 0 0}
+.pxhead h2{font-family:var(--display);font-weight:900;font-stretch:118%;font-size:clamp(1.3rem,3vh,1.9rem);line-height:1;letter-spacing:-.02em;text-transform:uppercase;margin:2px 0 0}
+.pxhead .dek{margin:7px 0 0}
+.pxbar{display:flex;flex-wrap:wrap;gap:9px 12px;align-items:center;padding:12px 0;border-top:2px solid var(--rule);border-bottom:2px solid var(--rule)}
+.pxstage{padding:12px 0;display:flex;flex-direction:column;gap:10px}
+.pxpad{display:flex;align-items:center;justify-content:center;min-height:180px}
+svg.pxfig{display:block;width:100%;height:auto;max-width:820px;touch-action:none}
+#tab-predict .p{transition:transform .28s cubic-bezier(.4,.05,.2,1)}
+svg.pxfig #pxBall{cursor:grab}
+svg.pxfig #pxBall.drag{cursor:grabbing;transition:none}
+svg.pxfig.adjust #pxTeam .p{cursor:grab}
+svg.pxfig.adjust #pxTeam .p.drag{cursor:grabbing;transition:none}
+@media (prefers-reduced-motion:reduce){#tab-predict .p,svg.pxfig #pxBall{transition:none}}
+.pxlegend{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:10px;letter-spacing:.03em;color:var(--ink2)}
+.pxlegend span{display:flex;align-items:center;gap:6px}
+.pxsw{width:10px;height:10px;flex:none;border-radius:50%}
+.pxsw.live{background:var(--accent)}
+.pxsw.data{background:transparent;border:1.5px solid var(--space)}
+.pxsw.band{background:transparent;border:1.5px dashed var(--warn);border-radius:2px}
+.pxrows{border-top:2px solid var(--rule);padding:13px 0 12px}
+.rt{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-family:var(--mono);font-size:12px;line-height:1.5}
+.rt dt{color:var(--ink2);letter-spacing:.05em;text-transform:uppercase;font-size:10px;align-self:center}
+.rt dd{margin:0;color:var(--ink);font-variant-numeric:tabular-nums}
+.rt dd.hold{color:var(--warn)}
+.pxnote{font-family:var(--mono);font-size:10.5px;line-height:1.6;color:var(--ink2);border-top:1px solid var(--hair);padding-top:12px;margin:0}
+.pxnote b{color:var(--ink);font-weight:600}
+.capbox{border:2px solid var(--rule);padding:11px 13px;margin-top:14px}
+.caphead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.caphead h3{font-family:var(--display);font-weight:800;font-stretch:110%;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;margin:0}
+.caphead h3 span{color:var(--accent)}
+.caphead > div{display:flex;gap:8px}
+#pxCapjson{width:100%;font-family:var(--mono);font-size:11px;line-height:1.5;color:var(--ink);background:var(--panel);border:1px solid var(--hair);padding:8px;resize:vertical}
+#pxCapjson:focus{outline:2px solid var(--space);outline-offset:1px}
+.caphint{font-family:var(--mono);font-size:10px;line-height:1.5;color:var(--ink2);margin:6px 0 0}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
 
+<nav class="tabs" aria-label="View">
+  <button id="tab-btn-board" aria-pressed="true">Board</button>
+  <button id="tab-btn-predict" aria-pressed="false">Predict</button>
+</nav>
+
+<div id="tab-board">
 <div class="app">
 <header><div class="wrap">
   <div class="kicker">
@@ -290,11 +339,121 @@ footer.end b{color:var(--ink);font-weight:600}
 </div>
 
 <footer class="end"><div class="wrap">
-  <p><b>Editing:</b> all eighteen zones are already filled in and stored separately &mdash; nine with the ball, nine without &mdash; so there is a real board waiting behind every square of the grid. The ball is draggable too &mdash; it picks up a dashed ring in edit mode, and stays inside its own square, so you can put it on the touchline or at a player's feet rather than dead centre. Hit <i>Edit shapes</i>, then walk the grid with <i>Next</i> and <i>Back</i> &mdash; they step one square at a time, all eighteen in order, so you can fix each one as you reach it. <i>Play tour</i> does the same walk on a timer, and any drag pauses it. Moving one zone never disturbs another, and a square turns green once you have changed it. <i>Mirror to other side</i> copies the zone you are on to the opposite lane, flipped, so you only ever have to draw one side.</p>
-  <p>Schematic, roughly to scale for a 60&nbsp;&times;&nbsp;40&nbsp;m 9v9 pitch. Left and right are from our attacking direction. Names are this page&rsquo;s own &mdash; edit them in the bar under <i>Edit shapes</i>, and they are saved in this browser. Currently: <span id="rosterline">Wills, Noah, Tanner, Sam, Coen, Nathaniel, Ethan R, Myland, Wyatt</span>.</p>
+  <p><b>Editing:</b> all eighteen zones are already filled in and stored separately &mdash; nine with the ball, nine without &mdash; so there is a real board waiting behind every square of the grid. The ball is draggable too &mdash; it picks up a dashed ring in edit mode, and stays inside its own square. Hit <i>Edit shapes</i>, then walk the grid with <i>Next</i> and <i>Back</i>. <i>Play tour</i> does the same walk on a timer, and any drag pauses it. A square turns green once you have changed it. <i>Mirror to other side</i> copies the zone you are on to the opposite lane, flipped.</p>
+  <p>Schematic, roughly to scale for a 60&nbsp;&times;&nbsp;40&nbsp;m 9v9 pitch. Left and right are from our attacking direction. Names are this page&rsquo;s own &mdash; edit them under <i>Edit shapes</i>, saved in this browser. Currently: <span id="rosterline">Wills, Noah, Tanner, Sam, Coen, Nathaniel, Ethan R, Myland, Wyatt</span>. The <b>Predict</b> tab up top turns these eighteen into a model for any ball position.</p>
 </div></footer>
+</div>
+
+<div id="tab-predict" hidden>
+<div class="wrap">
+  <div class="pxhead">
+    <p class="eyebrow">Predict &middot; any ball position</p>
+    <h2>Where everyone goes</h2>
+    <p class="dek">Your eighteen zones plus fourteen hand corrections, fitted so the shape follows the ball <b>anywhere</b> on the pitch &mdash; not just the nine squares. Drag the ball.</p>
+  </div>
+
+  <div class="pxbar">
+    <div class="switch" role="group" aria-label="Possession">
+      <button id="px-on" aria-pressed="false">We have it</button>
+      <button id="px-off" aria-pressed="true">They have it</button>
+    </div>
+    <div class="switch" role="group" aria-label="Model">
+      <button id="px-blend" aria-pressed="false">Blend 18</button>
+      <button id="px-fit" aria-pressed="true">Fitted</button>
+    </div>
+    <button class="ghost" id="px-rules" aria-pressed="true">Shape rules: on</button>
+    <button class="ghost" id="px-data" aria-pressed="true">Nearest shape</button>
+    <button class="ghost" id="px-adjust" aria-pressed="false">Adjust: off</button>
+    <button class="ghost" id="px-capture" hidden>Capture</button>
+  </div>
+
+  <div class="pxstage">
+    <div class="pxpad">
+    <svg class="pxfig" id="pxPitch" viewBox="0 0 400 300" role="img"
+         aria-label="A 9v9 pitch with a draggable ball; nine players take the shape the model predicts for the ball's position, with a faint outline of the nearest saved shape.">
+      <defs>
+        <marker id="pxAs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" style="fill:var(--space)"/>
+        </marker>
+        <clipPath id="pxPc"><rect x="10" y="10" width="380" height="240"/></clipPath>
+      </defs>
+      <rect x="10" y="10" width="380" height="240" style="fill:var(--grass);stroke:var(--pitchline);stroke-width:2"/>
+      <g clip-path="url(#pxPc)">
+        <g style="fill:none;stroke:var(--pitchline);stroke-width:1.1;stroke-dasharray:3 5;opacity:.8">
+          <line x1="136.7" y1="10" x2="136.7" y2="250"/>
+          <line x1="263.3" y1="10" x2="263.3" y2="250"/>
+        </g>
+        <g style="fill:none;stroke:var(--pitchline);stroke-width:1.5">
+          <line x1="200" y1="10" x2="200" y2="250"/>
+          <circle cx="200" cy="130" r="32"/>
+          <rect x="10" y="59" width="60" height="142"/>
+          <rect x="330" y="59" width="60" height="142"/>
+          <rect x="10" y="97" width="20" height="66"/>
+          <rect x="370" y="97" width="20" height="66"/>
+        </g>
+        <g id="pxLeashbox">
+          <rect x="136.7" y="84" width="253.3" height="90" style="fill:var(--warn);opacity:.09"/>
+          <rect x="136.7" y="84" width="253.3" height="90" style="fill:none;stroke:var(--warn);stroke-width:1.3;stroke-dasharray:4 3;opacity:.85"/>
+          <text x="382" y="81" style="fill:var(--warn);font:600 7.5px var(--mono);text-anchor:end;letter-spacing:.06em">STRIKER &mdash; NO BALL</text>
+        </g>
+      </g>
+      <rect x="4" y="112" width="6" height="36" style="fill:var(--pitchline)"/>
+      <rect x="390" y="112" width="6" height="36" style="fill:var(--pitchline)"/>
+
+      <g id="pxDrift" style="stroke:var(--space);stroke-width:1;opacity:.5"></g>
+      <line id="pxMidlink" style="stroke:var(--ink2);stroke-width:1.2;stroke-dasharray:2 3;opacity:0"/>
+      <g id="pxGhost"></g>
+      <g id="pxBall">
+        <circle r="15" style="fill:transparent"/>
+        <circle r="10" style="fill:none;stroke:var(--ink);stroke-width:1.3;stroke-dasharray:3 3;opacity:.4"/>
+        <circle id="pxBalld" r="5.5" style="fill:var(--ink);stroke:var(--grass);stroke-width:1.5"/>
+      </g>
+      <g id="pxTeam"></g>
+
+      <text x="16" y="24" style="fill:var(--ink2);font:600 8px var(--mono);opacity:.7">LEFT</text>
+      <text x="16" y="243" style="fill:var(--ink2);font:600 8px var(--mono);opacity:.7">RIGHT</text>
+      <line x1="150" y1="272" x2="250" y2="272" style="stroke:var(--space);stroke-width:1.6" marker-end="url(#pxAs)"/>
+      <text x="200" y="266" style="fill:var(--space);font:600 9px var(--mono);text-anchor:middle">WE ATTACK THIS WAY</text>
+      <text x="73" y="292" style="fill:var(--ink2);font:600 8.5px var(--mono);text-anchor:middle">OUR THIRD</text>
+      <text x="200" y="292" style="fill:var(--ink2);font:600 8.5px var(--mono);text-anchor:middle">MIDDLE</text>
+      <text x="327" y="292" style="fill:var(--ink2);font:600 8.5px var(--mono);text-anchor:middle">THEIR THIRD</text>
+    </svg>
+    </div>
+    <div class="pxlegend">
+      <span><i class="pxsw live"></i>model</span>
+      <span><i class="pxsw data"></i>nearest saved shape</span>
+      <span><i class="pxsw band"></i>striker band, off the ball</span>
+      <span id="px-lg-adjust" hidden>drag a player, then Capture</span>
+    </div>
+  </div>
+
+  <div class="pxrows">
+    <dl class="rt">
+      <dt>Ball</dt><dd id="px-r-ball">their third, right</dd>
+      <dt>Model</dt><dd id="px-r-model">fitted rule + rules</dd>
+      <dt>Striker</dt><dd id="px-r-st">x 258  y 156</dd>
+      <dt>Mids</dt><dd id="px-r-mids">AM 24 ahead, 20 across</dd>
+      <dt>Drift</dt><dd id="px-r-drift">avg 15 px from nearest saved shape</dd>
+    </dl>
+  </div>
+  <p class="pxnote">Per player, a plane <b>pos = a + b&middot;ballX + c&middot;ballY</b> is fit through your saved shapes (19 off the ball, 13 on). <b>Shape rules</b>: the striker stays out of our third and in a central band off the ball, and AM never sits inline with DM. Held-out accuracy about <b>2&nbsp;m</b> per player off the ball, 2.5&nbsp;m on it. Nothing here changes your Board tab &mdash; corrections you <i>Capture</i> and send back get folded into the next version.</p>
+
+  <div class="capbox" id="px-capbox" hidden>
+    <div class="caphead">
+      <h3>Captured &mdash; <span id="px-capn">0</span></h3>
+      <div>
+        <button class="ghost" id="px-copy">Copy</button>
+        <button class="ghost" id="px-clear">Clear</button>
+      </div>
+    </div>
+    <textarea id="pxCapjson" readonly rows="3" spellcheck="false" aria-label="Captured corrections as JSON"></textarea>
+    <p class="caphint">Paste this back into the chat.</p>
+  </div>
+</div>
+</div>
 
 <script>
+/* ================= BOARD TAB ================= */
 (function(){
   "use strict";
 
@@ -306,7 +465,6 @@ footer.end b{color:var(--ink);font-weight:600}
   };
   var MIRROR = { GK:"GK", LB:"RB", RB:"LB", CB:"CB", CDM:"CDM", CAM:"CAM", LM:"RM", RM:"LM", ST:"ST" };
 
-  // this page keeps its own nine names — edit them in the bar under Edit shapes
   var names = {};
   function who(k){
     var v = names[k];
@@ -317,21 +475,16 @@ footer.end b{color:var(--ink);font-weight:600}
     "on:def":{ GK:[40,130], LB:[88,48],  CB:[76,130],  RB:[88,212],  CDM:[136,130], LM:[200,30],  CAM:[180,130], RM:[200,230], ST:[268,130] },
     "on:mid":{ GK:[54,130], LB:[132,42], CB:[120,130], RB:[132,218], CDM:[180,130], LM:[252,26],  CAM:[234,130], RM:[252,234], ST:[312,130] },
     "on:att":{ GK:[64,130], LB:[190,44], CB:[172,130], RB:[190,216], CDM:[238,130], LM:[326,30],  CAM:[318,152], RM:[326,230], ST:[356,110] },
-    // out-of-possession bases follow the coach's own sketch: a 3–1–3–1 that
-    // presses with the front man and keeps its width behind him.
     "off:att":{GK:[50,130], LB:[188,78], CB:[182,130], RB:[188,182], CDM:[230,130], LM:[255,66], CAM:[251,130], RM:[255,194], ST:[286,130] },
     "off:mid":{GK:[45,130], LB:[116,78], CB:[110,130], RB:[116,182], CDM:[158,130], LM:[183,66], CAM:[179,130], RM:[183,194], ST:[214,130] },
     "off:def":{GK:[28,130], LB:[ 60,78], CB:[ 54,130], RB:[ 60,182], CDM:[102,130], LM:[127,66], CAM:[123,130], RM:[127,194], ST:[158,130] }
   };
-
-  // y = 130 + (ballY-130)*pull + (baseY-130)*spread
   var LAW = {
     on: { GK:[0.06,1], LB:[0.22,0.95], CB:[0.22,0.95], RB:[0.22,0.95],
           CDM:[0.30,1], CAM:[0.55,1], LM:[0,1], RM:[0,1], ST:[0.30,1] },
     off:{ GK:[0.02,1], LB:[0.45,1], CB:[0.45,1], RB:[0.45,1],
           CDM:[0.64,1], CAM:[0.05,1], LM:[0.333,1], RM:[0.333,1], ST:[0.67,1] }
   };
-
   var THIRD = { def:[10,136.7], mid:[136.7,126.6], att:[263.3,126.7] };
   var LANEY = { "-1":[10,80], "0":[90,80], "1":[170,80] };
   var MX = 60/380, MY = 40/240;
@@ -339,9 +492,7 @@ footer.end b{color:var(--ink);font-weight:600}
   function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
   function keyOf(s,t,l){ return s+":"+t+":"+l; }
 
-  var overrides = {};   // every one of the 18 zones, stored on its own
-  var balls     = {};   // where the ball sits inside each of those zones
-  var touched   = {};   // the ones the coach has actually moved
+  var overrides = {}, balls = {}, touched = {};
 
   var ZONES = [];
   ["on","off"].forEach(function(s){
@@ -360,8 +511,8 @@ footer.end b{color:var(--ink);font-weight:600}
         var nearWM = lane>0?"RM":"LM", farWM = lane>0?"LM":"RM";
         var nearFB = lane>0?"RB":"LB", farFB = lane>0?"LB":"RB";
         if (side === "off") {
-          if (k === nearWM) x -= 13;    // comes inside, onto the ball
-          if (k === farWM)  x += 13;    // stays higher on his own side
+          if (k === nearWM) x -= 13;
+          if (k === farWM)  x += 13;
           if (k === nearFB) x -= 14;
           if (k === farFB)  x += 14;
         } else {
@@ -386,9 +537,6 @@ footer.end b{color:var(--ink);font-weight:600}
     return computed(side, third, lane);
   }
 
-  // give every zone a real stored shape, so all 18 are editable boards
-  // rather than something worked out on the fly. Never overwrites one
-  // that already exists.
   function seedAll(){
     var added = 0;
     ZONES.forEach(function(z){
@@ -399,8 +547,6 @@ footer.end b{color:var(--ink);font-weight:600}
     return added;
   }
 
-  // the ball starts in the middle of its square and can be dragged
-  // anywhere inside it.
   function ballHome(third, lane){
     var tx = THIRD[third], ly = LANEY[String(lane)];
     return [Math.round(tx[0] + tx[1]/2), Math.round(ly[0] + ly[1]/2)];
@@ -459,7 +605,7 @@ footer.end b{color:var(--ink);font-weight:600}
   var cur = { side:"on", third:"def", lane:0 };
   var curPos = shape("on","def",0);
   var playing = !reduce, editing = false, timer = null, nodes = {};
-  var db = null, saveTimer = null, muted = false;
+  var saveTimer = null;
 
   function el(tag, attrs, style){
     var n = document.createElementNS(NS, tag);
@@ -482,7 +628,6 @@ footer.end b{color:var(--ink);font-weight:600}
     nodes[k+":a"] = a; arrows.appendChild(a);
   });
 
-  // ---- names ------------------------------------------------------------
   var namegrid = document.getElementById("namegrid");
   var namebar  = document.getElementById("namebar");
   var nameInputs = {};
@@ -506,7 +651,7 @@ footer.end b{color:var(--ink);font-weight:600}
     ORDER.forEach(function(k){
       nodes[k+":nm"].textContent = who(k).toUpperCase();
     });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-role]"), function(el2){
+    Array.prototype.forEach.call(document.querySelectorAll("#tab-board [data-role]"), function(el2){
       el2.textContent = who(el2.getAttribute("data-role"));
     });
     var roster = document.getElementById("rosterline");
@@ -538,7 +683,7 @@ footer.end b{color:var(--ink);font-weight:600}
   }
 
   function markCells(){
-    Array.prototype.forEach.call(document.querySelectorAll(".zcell"), function(c){
+    Array.prototype.forEach.call(document.querySelectorAll("#tab-board .zcell"), function(c){
       var z = c.getAttribute("data-z"), l = Number(c.getAttribute("data-l"));
       c.setAttribute("aria-pressed", (z===cur.third && l===cur.lane) ? "true":"false");
       c.setAttribute("data-edited", touched[keyOf(cur.side,z,l)] ? "true":"false");
@@ -594,7 +739,6 @@ footer.end b{color:var(--ink);font-weight:600}
   }
   function refresh(){ paint(shape(cur.side,cur.third,cur.lane), cur, false); }
 
-  // ---- editing -----------------------------------------------------------
   var dragKey = null;
   function toSvg(e){
     var m = pitch.getScreenCTM(); if (!m) return [0,0];
@@ -625,7 +769,7 @@ footer.end b{color:var(--ink);font-weight:600}
     var g = e.target.closest ? e.target.closest(".p") : null;
     if (!g) return;
     dragKey = g.getAttribute("data-k");
-    setPlaying(false);              // never move the tour out from under a drag
+    setPlaying(false);
     g.classList.add("drag","nomove");
     pitch.setPointerCapture(e.pointerId);
     e.preventDefault();
@@ -696,17 +840,8 @@ footer.end b{color:var(--ink);font-weight:600}
     refresh(); markCells(); queueSave();
   });
 
-  // ---- shipped board --------------------------------------------------
-  // The eighteen zones exactly as saved in the source artifact (its shared
-  // DB, revision 208). This is the baseline a fresh visitor sees; once they
-  // make an edit, their localStorage copy takes over instead.
   var SHIPPED = {"balls":{"off:att:-1":[327,50],"off:att:0":[327,130],"off:att:1":[327,210],"off:def:-1":[82,29],"off:def:0":[78,130],"off:def:1":[78,210],"off:mid:-1":[232,36],"off:mid:0":[183,131],"off:mid:1":[200,210],"on:att:-1":[327,50],"on:att:0":[319,129],"on:att:1":[339,215],"on:def:-1":[78,50],"on:def:0":[96,145],"on:def:1":[81,230],"on:mid:-1":[233,32],"on:mid:0":[200,130],"on:mid:1":[224,228]},"names":{},"shapes":{"off:att:-1":{"CAM":[273,60],"CB":[182,97.6],"CDM":[233,89],"GK":[50,128.56],"LB":[208,34],"LM":[307,38],"RB":[199,168],"RM":[262,144],"ST":[302,90]},"off:att:0":{"CAM":[274,120],"CB":[198,132],"CDM":[239,92],"GK":[50,130],"LB":[199,69],"LM":[281,69],"RB":[230,183],"RM":[287,200],"ST":[303,143]},"off:att:1":{"CAM":[264,200],"CB":[197,173],"CDM":[244,159],"GK":[50,131.44],"LB":[203,103],"LM":[272,117],"RB":[210,223],"RM":[306,226],"ST":[293,165]},"off:def:-1":{"CAM":[122,114],"CB":[64,85],"CDM":[94,83],"GK":[24,114],"LB":[62,45],"LM":[104,52],"RB":[62,132],"RM":[103,148],"ST":[182,116]},"off:def:0":{"CAM":[108,141],"CB":[54,130],"CDM":[90,116],"GK":[28,130],"LB":[59,96],"LM":[96,83],"RB":[59,162],"RM":[85,172],"ST":[158,130]},"off:def:1":{"CAM":[112,140],"CB":[61,162],"CDM":[90,178],"GK":[28,131.44],"LB":[64,120],"LM":[93,92],"RB":[62,198],"RM":[104,216],"ST":[194,133]},"off:mid:-1":{"CAM":[180,62],"CB":[119,72],"CDM":[150,90],"GK":[45,128.56],"LB":[144,33],"LM":[207,25],"RB":[126,155],"RM":[181,142],"ST":[214,81.75999999999999]},"off:mid:0":{"CAM":[167,143],"CB":[110,130],"CDM":[140,122],"GK":[45,130],"LB":[124,90],"LM":[161,82],"RB":[125,168],"RM":[159,183],"ST":[211,101]},"off:mid:1":{"CAM":[167,124],"CB":[120,156],"CDM":[158,176.07999999999998],"GK":[41,146],"LB":[130,110.4],"LM":[196,89.976],"RB":[121,214],"RM":[177,201],"ST":[200,166]},"on:att:-1":{"CAM":[295,75],"CB":[189,124],"CDM":[255,135],"GK":[64,125.68],"LB":[234,33],"LM":[332,30],"RB":[253,204],"RM":[332,203],"ST":[339,105]},"on:att:0":{"CAM":[293,171],"CB":[198,132],"CDM":[272,99],"GK":[64,130],"LB":[252,39],"LM":[336,28],"RB":[256,217],"RM":[338,232],"ST":[337,128]},"on:att:1":{"CAM":[285,168],"CB":[200,137],"CDM":[259,112],"GK":[64,134.32],"LB":[266,52],"LM":[325,83],"RB":[246,231],"RM":[332,230],"ST":[331,164]},"on:def:-1":{"CAM":[162,84],"CB":[76,114.16],"CDM":[118,144],"GK":[36,112],"LB":[65,42],"LM":[206,30],"RB":[81,192.06],"RM":[200,230],"ST":[233,133]},"on:def:0":{"CAM":[174,150],"CB":[76,148],"CDM":[136,104],"GK":[40,130],"LB":[88,52.10000000000001],"LM":[200,30],"RB":[105,229],"RM":[200,230],"ST":[268,130]},"on:def:1":{"CAM":[154,181],"CB":[86,167],"CDM":[132,110],"GK":[40,134.32],"LB":[89,71],"LM":[174,53],"RB":[67,224],"RM":[181,237],"ST":[244,167]},"on:mid:-1":{"CAM":[263,89],"CB":[155,122],"CDM":[207,127],"GK":[54,125.68],"LB":[143,20],"LM":[216,21],"RB":[163,206],"RM":[261,232],"ST":[319,113]},"on:mid:0":{"CAM":[243,108],"CB":[116,148],"CDM":[180,130],"GK":[54,130],"LB":[162,51],"LM":[231,20],"RB":[163,227],"RM":[252,234],"ST":[311,154]},"on:mid:1":{"CAM":[248,151],"CB":[145,169],"CDM":[197,127],"GK":[54,134.32],"LB":[158,74],"LM":[244,50],"RB":[144,229.44],"RM":[208,226],"ST":[297,166]}},"touched":{"off:att:-1":true,"off:att:0":true,"off:att:1":true,"off:def:-1":true,"off:def:0":true,"off:def:1":true,"off:mid:-1":true,"off:mid:0":true,"off:mid:1":true,"on:att:0":true,"on:att:1":true,"on:def:0":true,"on:def:1":true,"on:mid:-1":true,"on:mid:0":true,"on:mid:1":true}};
 
-  // ---- persistence -----------------------------------------------------
-  // The Claude runtime's shared DB isn't here on a plain web host, so this
-  // build just keeps everything in this browser via localStorage. Edits,
-  // ball positions and names all persist per-device; clearing site data
-  // resets to the shipped 18.
   function payload(){ return { shapes: overrides, balls: balls, names: names, touched: touched, updatedAt: new Date().toISOString() }; }
   function localTry(fn){ try { fn(); } catch(err) {} }
   function absorb(d){
@@ -754,10 +889,6 @@ footer.end b{color:var(--ink);font-weight:600}
     setSave("ok", tally() + " (this device)");
   }
 
-  // ---- loop --------------------------------------------------------------
-  // the tour walks the grid square by square, exactly as it reads on screen:
-  // with the ball, left lane across the three thirds, then centre, then right —
-  // and then the same nine without it.
   var TOUR = [];
   ["on","off"].forEach(function(s){
     [-1,0,1].forEach(function(l){
@@ -788,7 +919,7 @@ footer.end b{color:var(--ink);font-weight:600}
 
   document.getElementById("btn-on").addEventListener("click", function(){ setPlaying(false); go("on", cur.third, cur.lane); });
   document.getElementById("btn-off").addEventListener("click",function(){ setPlaying(false); go("off",cur.third, cur.lane); });
-  Array.prototype.forEach.call(document.querySelectorAll(".zcell"), function(c){
+  Array.prototype.forEach.call(document.querySelectorAll("#tab-board .zcell"), function(c){
     c.addEventListener("click", function(){
       setPlaying(false);
       go(cur.side, c.getAttribute("data-z"), Number(c.getAttribute("data-l")));
@@ -806,12 +937,416 @@ footer.end b{color:var(--ink);font-weight:600}
     var raw = localStorage.getItem("shape-overrides");
     if (raw) { absorb(JSON.parse(raw)); hadLocal = true; }
   });
-  if (!hadLocal) absorb(SHIPPED);   // start from the artifact's saved board
+  if (!hadLocal) absorb(SHIPPED);
   seedAll();
   applyNames(); syncNameInputs();
   refresh(); markCells();
   setSave("", tally());
   if (reduce) setPlaying(false); else loop();
+})();
+
+/* ================= PREDICT TAB ================= */
+(function(){
+  "use strict";
+
+  var ORDER = ["GK","LB","CB","RB","CDM","LM","CAM","RM","ST"];
+  var LAB = {GK:"GK",LB:"LB",CB:"CB",RB:"RB",CDM:"DM",LM:"LM",CAM:"AM",RM:"RM",ST:"ST"};
+  var META = {
+    GK:"Wills", LB:"Noah", CB:"Tanner", RB:"Sam", CDM:"Coen",
+    LM:"Nathaniel", CAM:"Ethan R", RM:"Myland", ST:"Wyatt"
+  };
+  function loadNames(){
+    try {
+      var raw = localStorage.getItem("shape-overrides");
+      if (raw) { var d = JSON.parse(raw); if (d && d.names && typeof d.names === "object") return d.names; }
+    } catch(e){}
+    return {};
+  }
+  var pxNames = loadNames();
+  function who(k){
+    var v = pxNames[k];
+    return (typeof v === "string" && v.trim()) ? v.trim() : META[k];
+  }
+
+  var DB = {"balls":{"off:att:-1":[327,50],"off:att:0":[327,130],"off:att:1":[327,210],"off:def:-1":[82,29],"off:def:0":[78,130],"off:def:1":[78,210],"off:mid:-1":[232,36],"off:mid:0":[183,131],"off:mid:1":[200,210],"on:att:-1":[327,50],"on:att:0":[319,129],"on:att:1":[339,215],"on:def:-1":[78,50],"on:def:0":[96,145],"on:def:1":[81,230],"on:mid:-1":[233,32],"on:mid:0":[200,130],"on:mid:1":[224,228]},
+  "shapes":{"off:att:-1":{"CAM":[273,60],"CB":[182,97.6],"CDM":[233,89],"GK":[50,128.56],"LB":[208,34],"LM":[307,38],"RB":[199,168],"RM":[262,144],"ST":[302,90]},"off:att:0":{"CAM":[274,120],"CB":[198,132],"CDM":[239,92],"GK":[50,130],"LB":[199,69],"LM":[281,69],"RB":[230,183],"RM":[287,200],"ST":[303,143]},"off:att:1":{"CAM":[264,200],"CB":[197,173],"CDM":[244,159],"GK":[50,131.44],"LB":[203,103],"LM":[272,117],"RB":[210,223],"RM":[306,226],"ST":[293,165]},"off:def:-1":{"CAM":[122,114],"CB":[64,85],"CDM":[94,83],"GK":[24,114],"LB":[62,45],"LM":[104,52],"RB":[62,132],"RM":[103,148],"ST":[182,116]},"off:def:0":{"CAM":[108,141],"CB":[54,130],"CDM":[90,116],"GK":[28,130],"LB":[59,96],"LM":[96,83],"RB":[59,162],"RM":[85,172],"ST":[158,130]},"off:def:1":{"CAM":[112,140],"CB":[61,162],"CDM":[90,178],"GK":[28,131.44],"LB":[64,120],"LM":[93,92],"RB":[62,198],"RM":[104,216],"ST":[194,133]},"off:mid:-1":{"CAM":[180,62],"CB":[119,72],"CDM":[150,90],"GK":[45,128.56],"LB":[144,33],"LM":[207,25],"RB":[126,155],"RM":[181,142],"ST":[214,81.76]},"off:mid:0":{"CAM":[167,143],"CB":[110,130],"CDM":[140,122],"GK":[45,130],"LB":[124,90],"LM":[161,82],"RB":[125,168],"RM":[159,183],"ST":[211,101]},"off:mid:1":{"CAM":[167,124],"CB":[120,156],"CDM":[158,176.08],"GK":[41,146],"LB":[130,110.4],"LM":[196,89.976],"RB":[121,214],"RM":[177,201],"ST":[200,166]},"on:att:-1":{"CAM":[295,75],"CB":[189,124],"CDM":[255,135],"GK":[64,125.68],"LB":[234,33],"LM":[332,30],"RB":[253,204],"RM":[332,203],"ST":[339,105]},"on:att:0":{"CAM":[293,171],"CB":[198,132],"CDM":[272,99],"GK":[64,130],"LB":[252,39],"LM":[336,28],"RB":[256,217],"RM":[338,232],"ST":[337,128]},"on:att:1":{"CAM":[285,168],"CB":[200,137],"CDM":[259,112],"GK":[64,134.32],"LB":[266,52],"LM":[325,83],"RB":[246,231],"RM":[332,230],"ST":[331,164]},"on:def:-1":{"CAM":[162,84],"CB":[76,114.16],"CDM":[118,144],"GK":[36,112],"LB":[65,42],"LM":[206,30],"RB":[81,192.06],"RM":[200,230],"ST":[233,133]},"on:def:0":{"CAM":[174,150],"CB":[76,148],"CDM":[136,104],"GK":[40,130],"LB":[88,52.1],"LM":[200,30],"RB":[105,229],"RM":[200,230],"ST":[268,130]},"on:def:1":{"CAM":[154,181],"CB":[86,167],"CDM":[132,110],"GK":[40,134.32],"LB":[89,71],"LM":[174,53],"RB":[67,224],"RM":[181,237],"ST":[244,167]},"on:mid:-1":{"CAM":[263,89],"CB":[155,122],"CDM":[207,127],"GK":[54,125.68],"LB":[143,20],"LM":[216,21],"RB":[163,206],"RM":[261,232],"ST":[319,113]},"on:mid:0":{"CAM":[243,108],"CB":[116,148],"CDM":[180,130],"GK":[54,130],"LB":[162,51],"LM":[231,20],"RB":[163,227],"RM":[252,234],"ST":[311,154]},"on:mid:1":{"CAM":[248,151],"CB":[145,169],"CDM":[197,127],"GK":[54,134.32],"LB":[158,74],"LM":[244,50],"RB":[144,229.44],"RM":[208,226],"ST":[297,166]}}};
+
+  var LEASH_X = 136.7, LEASH_Y0 = 84, LEASH_Y1 = 174;
+  function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+
+  var anchors = {on:[], off:[]};
+  ["on","off"].forEach(function(side){
+    ["def","mid","att"].forEach(function(t){
+      [-1,0,1].forEach(function(l){
+        var key = side+":"+t+":"+l;
+        anchors[side].push({ ball: DB.balls[key], shape: DB.shapes[key] });
+      });
+    });
+  });
+
+  var CORR = [
+    {"side":"off","ball":[50,31],"shape":{"GK":[25,120],"LB":[44,51],"CB":[35,80],"RB":[34,128],"CDM":[65,76],"LM":[79,41],"CAM":[84,105],"RM":[57,138],"ST":[153,98]}},
+    {"side":"off","ball":[92,73],"shape":{"GK":[29,124],"LB":[59,60],"CB":[58,90],"RB":[58,128],"CDM":[84,86],"LM":[108,55],"CAM":[99,119],"RM":[94,156],"ST":[174,109]}},
+    {"side":"off","ball":[162,90],"shape":{"GK":[36,127],"LB":[116,56],"CB":[98,109],"RB":[105,161],"CDM":[132,87],"LM":[161,60],"CAM":[154,106],"RM":[149,165],"ST":[208,116]}},
+    {"side":"off","ball":[362,31],"shape":{"GK":[54,126],"LB":[222,23],"CB":[201,85],"RB":[223,161],"CDM":[235,84],"LM":[317,35],"CAM":[281,61],"RM":[292,148],"ST":[319,88]}},
+    {"side":"off","ball":[334,128],"shape":{"GK":[52,133],"LB":[207,67],"CB":[192,130],"RB":[212,192],"CDM":[258,95],"LM":[290,70],"CAM":[290,116],"RM":[283,187],"ST":[314,144]}},
+    {"side":"off","ball":[186,144],"shape":{"GK":[39,131],"LB":[127,81],"CB":[124,119],"RB":[123,181],"CDM":[155,133],"LM":[173,85],"CAM":[171,154],"RM":[174,188],"ST":[222,133]}},
+    {"side":"off","ball":[305,181],"shape":{"GK":[50,136],"LB":[191,92],"CB":[199,152],"RB":[220,210],"CDM":[238,159],"LM":[265,90],"CAM":[269,136],"RM":[274,216],"ST":[281,177]}},
+    {"side":"off","ball":[326,90],"shape":{"GK":[51,130],"LB":[233,72],"CB":[185,112],"RB":[205,178],"CDM":[235,134],"LM":[277,50],"CAM":[278,119],"RM":[272,171],"ST":[299,86]}},
+    {"side":"off","ball":[279,100],"shape":{"GK":[47,130],"LB":[175,59],"CB":[161,115],"RB":[177,176],"CDM":[213,136],"LM":[250,61],"CAM":[235,108],"RM":[238,173],"ST":[261,88]}},
+    {"side":"off","ball":[285,124],"shape":{"GK":[48,132],"LB":[179,69],"CB":[166,127],"RB":[182,186],"CDM":[218,131],"LM":[253,70],"CAM":[245,110],"RM":[246,183],"ST":[267,133]}},
+    {"side":"on","ball":[266,97],"shape":{"GK":[58,127],"LB":[195,38],"CB":[164,130],"RB":[204,213],"CDM":[222,142],"LM":[282,34],"CAM":[248,95],"RM":[292,224],"ST":[319,128]}},
+    {"side":"on","ball":[205,123],"shape":{"GK":[52,128],"LB":[157,46],"CB":[135,138],"RB":[161,216],"CDM":[192,122],"LM":[249,36],"CAM":[242,81],"RM":[254,228],"ST":[292,152]}},
+    {"side":"on","ball":[177,172],"shape":{"GK":[49,130],"LB":[143,57],"CB":[133,120],"RB":[139,223],"CDM":[160,172],"LM":[233,44],"CAM":[210,117],"RM":[232,231],"ST":[284,151]}},
+    {"side":"on","ball":[314,134],"shape":{"GK":[63,131],"LB":[233,43],"CB":[187,136],"RB":[234,220],"CDM":[251,119],"LM":[308,43],"CAM":[275,168],"RM":[313,224],"ST":[335,136]}}
+  ];
+  CORR.forEach(function(c){ anchors[c.side].push({ ball:c.ball, shape:c.shape }); });
+
+  function det3(m){
+    return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+         - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+         + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+  }
+  function solve3(M,r){
+    var d = det3(M);
+    if (Math.abs(d) < 1e-9) return [r[0]/(M[0][0]||1), 0, 0];
+    function col(k){ return M.map(function(row,i){ return row.map(function(val,j){ return j===k ? r[i] : val; }); }); }
+    return [det3(col(0))/d, det3(col(1))/d, det3(col(2))/d];
+  }
+  function fitPlane(pts){
+    var S=[[0,0,0],[0,0,0],[0,0,0]], r=[0,0,0];
+    pts.forEach(function(p){
+      var row=[1,p.bx,p.by];
+      for (var i=0;i<3;i++){ r[i]+=row[i]*p.v; for (var j=0;j<3;j++) S[i][j]+=row[i]*row[j]; }
+    });
+    return solve3(S,r);
+  }
+  function plane(c, bx, by){ return c[0] + c[1]*bx + c[2]*by; }
+
+  var FIT = {on:{}, off:{}};
+  ["on","off"].forEach(function(side){
+    ORDER.forEach(function(k){
+      var leashK = (side==="off" && k==="ST");
+      var px=[], py=[];
+      anchors[side].forEach(function(a){
+        var x=a.shape[k][0], y=a.shape[k][1];
+        if (leashK){ x=Math.max(x,LEASH_X+0.3); y=clamp(y,LEASH_Y0,LEASH_Y1); }
+        px.push({bx:a.ball[0], by:a.ball[1], v:x});
+        py.push({bx:a.ball[0], by:a.ball[1], v:y});
+      });
+      FIT[side][k] = { x:fitPlane(px), y:fitPlane(py) };
+    });
+    var rx=[], ry=[];
+    anchors[side].forEach(function(a){
+      rx.push({bx:a.ball[0], by:a.ball[1], v:a.shape.ST[0]});
+      ry.push({bx:a.ball[0], by:a.ball[1], v:a.shape.ST[1]});
+    });
+    FIT[side].ST_raw = { x:fitPlane(rx), y:fitPlane(ry) };
+  });
+
+  function predictFitted(side, q, leash){
+    var out={};
+    ORDER.forEach(function(k){
+      var f = FIT[side][k];
+      if (k==="ST" && side==="off" && !leash) f = FIT.off.ST_raw;
+      out[k] = [ plane(f.x,q[0],q[1]), plane(f.y,q[0],q[1]) ];
+    });
+    return out;
+  }
+  function predictBlend(side, q){
+    var sig=52, W=0, acc={};
+    ORDER.forEach(function(k){ acc[k]=[0,0]; });
+    anchors[side].forEach(function(a){
+      var dx=q[0]-a.ball[0], dy=q[1]-a.ball[1];
+      var w=Math.exp(-(dx*dx+dy*dy)/(2*sig*sig)) + 1e-6;
+      W+=w;
+      ORDER.forEach(function(k){ acc[k][0]+=w*a.shape[k][0]; acc[k][1]+=w*a.shape[k][1]; });
+    });
+    ORDER.forEach(function(k){ acc[k][0]/=W; acc[k][1]/=W; });
+    return acc;
+  }
+  function tidy(pos, side, leash){
+    var o={};
+    ORDER.forEach(function(k){
+      var x=pos[k][0], y=pos[k][1];
+      x=clamp(x,20,382); y=clamp(y,20,240);
+      if (k==="GK") x=clamp(x,24,66);
+      if (k==="ST" && side==="off" && leash){ x=Math.max(x,LEASH_X); y=clamp(y,LEASH_Y0,LEASH_Y1); }
+      o[k]=[Math.round(x*10)/10, Math.round(y*10)/10];
+    });
+    return o;
+  }
+  function nearestAnchor(side, q){
+    var best=null, bd=1e9;
+    anchors[side].forEach(function(a){
+      var d=Math.hypot(q[0]-a.ball[0], q[1]-a.ball[1]);
+      if (d<bd){ bd=d; best=a; }
+    });
+    return best;
+  }
+
+  var GX_MID = 18, GY_MID = 18, midsNudged = false;
+  function deInline(pos, q){
+    midsNudged = false;
+    var am = pos.CAM.slice(), dm = pos.CDM.slice();
+    var mx = (am[0]+dm[0])/2;
+    if (am[0]-dm[0] < GX_MID){ am[0] = mx + GX_MID/2; dm[0] = mx - GX_MID/2; midsNudged = true; }
+    var dy = am[1]-dm[1], my = (am[1]+dm[1])/2;
+    var sign = Math.abs(dy) < 1 ? (q[1] < 130 ? 1 : -1) : (dy > 0 ? 1 : -1);
+    if (Math.abs(dy) < GY_MID){ am[1] = my + sign*GY_MID/2; dm[1] = my - sign*GY_MID/2; midsNudged = true; }
+    pos.CAM = [Math.round(clamp(am[0],20,382)), Math.round(clamp(am[1],20,240))];
+    pos.CDM = [Math.round(clamp(dm[0],20,382)), Math.round(clamp(dm[1],20,240))];
+  }
+
+  var NS="http://www.w3.org/2000/svg";
+  var pitch=document.getElementById("pxPitch"), team=document.getElementById("pxTeam");
+  var ghost=document.getElementById("pxGhost"), drift=document.getElementById("pxDrift");
+  var ballG=document.getElementById("pxBall"), balld=document.getElementById("pxBalld");
+  var leashbox=document.getElementById("pxLeashbox"), midlink=document.getElementById("pxMidlink");
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+  function el(tag, attrs, style){
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (style) n.setAttribute("style", style);
+    return n;
+  }
+
+  var nodes={}, nmNodes={};
+  ORDER.forEach(function(k){
+    var g=el("g",{ "class":"p", "data-k":k });
+    g.appendChild(el("circle",{ r:k==="ST"?12:11 },"fill:var(--accent)"));
+    if (k==="ST") g.appendChild(el("circle",{ r:15.5 },"fill:none;stroke:var(--accent);stroke-width:1.4;opacity:.55"));
+    var lab=el("text",{ y:3.3 },"fill:var(--accent-ink);font:600 8px var(--mono);text-anchor:middle;pointer-events:none");
+    lab.textContent=LAB[k]; g.appendChild(lab);
+    var nm=el("text",{ y:23 },"fill:var(--ink);font:600 7.5px var(--mono);text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:var(--grass);stroke-width:2.5");
+    g.appendChild(nm);
+    nodes[k]=g; nmNodes[k]=nm; team.appendChild(g);
+  });
+  var gnodes={};
+  ORDER.forEach(function(k){
+    var c=el("circle",{ r:k==="ST"?10:8.5 },"fill:none;stroke:var(--space);stroke-width:1.5;opacity:.75");
+    gnodes[k]=c; ghost.appendChild(c);
+  });
+  var dnodes={};
+  ORDER.forEach(function(k){ var l=el("line",{}); dnodes[k]=l; drift.appendChild(l); });
+
+  var state={ side:"off", model:"fit", leash:true, showData:true, adjust:false, ball:[55,38], work:null };
+  var captures=[];
+
+  function thirdWord(x){ return x<136.7 ? "our third" : (x>263.3 ? "their third" : "the middle"); }
+  function laneWord(y){ return y<95 ? "left" : (y>165 ? "right" : "centre"); }
+
+  function modelShape(){
+    var q=state.ball;
+    var raw = state.model==="blend" ? predictBlend(state.side, q) : predictFitted(state.side, q, state.leash);
+    var pos = tidy(raw, state.side, state.leash);
+    if (state.leash) deInline(pos, q); else midsNudged = false;
+    return pos;
+  }
+  function seedWork(){
+    var m=modelShape(); state.work={};
+    ORDER.forEach(function(k){ state.work[k]=[m[k][0], m[k][1]]; });
+  }
+
+  function render(){
+    var q=state.ball;
+    var model = modelShape();
+    var pos = (state.adjust && state.work) ? state.work : model;
+    var near = nearestAnchor(state.side, q);
+
+    ORDER.forEach(function(k){
+      nodes[k].setAttribute("transform","translate("+pos[k][0]+","+pos[k][1]+")");
+      nmNodes[k].textContent = who(k).toUpperCase();
+      var gp = near.shape[k];
+      gnodes[k].setAttribute("cx", gp[0]); gnodes[k].setAttribute("cy", gp[1]);
+      var d=dnodes[k];
+      d.setAttribute("x1",gp[0]); d.setAttribute("y1",gp[1]);
+      d.setAttribute("x2",pos[k][0]); d.setAttribute("y2",pos[k][1]);
+    });
+    ghost.style.opacity = state.showData ? "1" : "0";
+    drift.style.opacity = state.showData ? ".5" : "0";
+
+    ballG.setAttribute("transform","translate("+q[0]+","+q[1]+")");
+    balld.setAttribute("style","stroke:var(--grass);stroke-width:1.5;fill:"+(state.side==="on"?"var(--accent)":"var(--ink)"));
+
+    var showLeash = state.leash && state.side==="off";
+    leashbox.style.opacity = showLeash ? "1" : "0";
+
+    midlink.setAttribute("x1", pos.CAM[0]); midlink.setAttribute("y1", pos.CAM[1]);
+    midlink.setAttribute("x2", pos.CDM[0]); midlink.setAttribute("y2", pos.CDM[1]);
+    midlink.style.opacity = state.leash ? ((midsNudged && !state.adjust) ? ".8" : ".4") : "0";
+    midlink.style.stroke = (midsNudged && !state.adjust) ? "var(--warn)" : "var(--ink2)";
+
+    document.getElementById("px-r-ball").textContent = thirdWord(q[0]) + " · " + laneWord(q[1]) + (state.side==="on"?" · ours":" · theirs");
+    document.getElementById("px-r-model").textContent = state.adjust
+      ? ("your correction, over " + (state.model==="blend"?"blend":"fitted"))
+      : ((state.model==="blend" ? "blend 18" : "fitted rule") + (state.leash ? " + rules" : ""));
+
+    var stStatus = "";
+    if (showLeash && !state.adjust){
+      var swant = [ plane(FIT.off.ST_raw.x,q[0],q[1]), plane(FIT.off.ST_raw.y,q[0],q[1]) ];
+      var sheld = swant[0] < LEASH_X - 1 || swant[1] < LEASH_Y0 - 1 || swant[1] > LEASH_Y1 + 1;
+      stStatus = sheld ? "  held to band" : "  in band on its own";
+    }
+    document.getElementById("px-r-st").textContent = "x " + Math.round(pos.ST[0]) + "  y " + Math.round(pos.ST[1]) + stStatus;
+
+    var midsEl = document.getElementById("px-r-mids");
+    var mUp = Math.round(pos.CAM[0]-pos.CDM[0]), mAcross = Math.round(Math.abs(pos.CAM[1]-pos.CDM[1]));
+    var mSide = pos.CAM[1] < pos.CDM[1] ? "AM to the left" : "AM to the right";
+    if (state.adjust){
+      midsEl.textContent = mUp + " ahead, " + mAcross + " across"; midsEl.className = "";
+    } else if (midsNudged){
+      midsEl.textContent = "were inline, split to " + mUp + " / " + mAcross; midsEl.className = "hold";
+    } else {
+      midsEl.textContent = mUp + " ahead, " + mAcross + " across, " + mSide; midsEl.className = "";
+    }
+
+    var driftEl = document.getElementById("px-r-drift");
+    if (state.adjust && state.work){
+      var s2=0; ORDER.forEach(function(k){ s2 += Math.hypot(state.work[k][0]-model[k][0], state.work[k][1]-model[k][1]); });
+      var a2=s2/9;
+      driftEl.textContent = a2<0.5
+        ? "matches the model here — drag someone"
+        : "you moved the shape avg " + Math.round(a2) + " px (" + (a2*0.158).toFixed(1) + " m) off the model";
+    } else {
+      var sum=0; ORDER.forEach(function(k){ sum += Math.hypot(pos[k][0]-near.shape[k][0], pos[k][1]-near.shape[k][1]); });
+      var avg = sum/9;
+      driftEl.textContent = "avg " + Math.round(avg) + " px · " + (avg*0.158).toFixed(1) + " m from nearest saved shape";
+    }
+  }
+
+  var drag=null;
+  function toSvg(e){
+    var m=pitch.getScreenCTM(); if(!m) return null;
+    var pt=pitch.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
+    var r=pt.matrixTransform(m.inverse());
+    return [clamp(r.x,14,386), clamp(r.y,14,246)];
+  }
+  pitch.addEventListener("pointerdown", function(e){
+    var onBall = e.target.closest && e.target.closest("#pxBall");
+    var pg = (state.adjust && e.target.closest) ? e.target.closest("#pxTeam .p") : null;
+    if (!onBall && !pg) return;
+    if (onBall){ drag="BALL"; ballG.classList.add("drag"); }
+    else { drag=pg.getAttribute("data-k"); pg.classList.add("drag"); if(!state.work) seedWork(); }
+    pitch.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  pitch.addEventListener("pointermove", function(e){
+    if(!drag) return;
+    var p=toSvg(e); if(!p) return;
+    if (drag==="BALL"){
+      state.ball=[Math.round(p[0]), Math.round(p[1])];
+      if (state.adjust) seedWork();
+    } else {
+      state.work[drag]=[ Math.round(clamp(p[0],16,384)), Math.round(clamp(p[1],14,246)) ];
+    }
+    render();
+  });
+  function end(e){
+    if(!drag) return;
+    if (drag==="BALL") ballG.classList.remove("drag");
+    else { var n=team.querySelector('.p[data-k="'+drag+'"]'); if(n) n.classList.remove("drag"); }
+    drag=null;
+    if (e && e.pointerId!=null && pitch.hasPointerCapture(e.pointerId)) pitch.releasePointerCapture(e.pointerId);
+  }
+  pitch.addEventListener("pointerup", end);
+  pitch.addEventListener("pointercancel", end);
+
+  function pair(aId,bId,onA){
+    var a=document.getElementById(aId), b=document.getElementById(bId);
+    function set(isA){ a.setAttribute("aria-pressed",isA?"true":"false"); b.setAttribute("aria-pressed",isA?"false":"true"); onA(isA); if(state.adjust) seedWork(); render(); }
+    a.addEventListener("click", function(){ set(true); });
+    b.addEventListener("click", function(){ set(false); });
+  }
+  pair("px-on","px-off", function(isOn){ state.side = isOn ? "on" : "off"; });
+  pair("px-blend","px-fit", function(isBlend){ state.model = isBlend ? "blend" : "fit"; });
+
+  document.getElementById("px-rules").addEventListener("click", function(){
+    state.leash=!state.leash;
+    this.setAttribute("aria-pressed", state.leash?"true":"false");
+    this.textContent = "Shape rules: " + (state.leash?"on":"off");
+    if (state.adjust) seedWork();
+    render();
+  });
+  document.getElementById("px-data").addEventListener("click", function(){
+    state.showData=!state.showData;
+    this.setAttribute("aria-pressed", state.showData?"true":"false");
+    render();
+  });
+
+  var btnAdjust=document.getElementById("px-adjust");
+  var btnCap=document.getElementById("px-capture");
+  var lgAdjust=document.getElementById("px-lg-adjust");
+  btnAdjust.addEventListener("click", function(){
+    state.adjust=!state.adjust;
+    this.setAttribute("aria-pressed", state.adjust?"true":"false");
+    this.textContent = "Adjust: " + (state.adjust?"on":"off");
+    pitch.classList.toggle("adjust", state.adjust);
+    btnCap.hidden = !state.adjust;
+    lgAdjust.hidden = !state.adjust;
+    if (state.adjust) seedWork(); else state.work=null;
+    render();
+  });
+
+  function flash(btn,msg){ var o=btn.getAttribute("data-label")||btn.textContent; btn.setAttribute("data-label",o); btn.textContent=msg; setTimeout(function(){ btn.textContent=o; }, 1100); }
+
+  function refreshCap(){
+    document.getElementById("px-capbox").hidden = captures.length===0;
+    document.getElementById("px-capn").textContent = String(captures.length);
+    document.getElementById("pxCapjson").value = JSON.stringify(captures);
+  }
+  btnCap.addEventListener("click", function(){
+    if (!state.work) return;
+    var shp={};
+    ORDER.forEach(function(k){ shp[k]=[ Math.round(state.work[k][0]), Math.round(state.work[k][1]) ]; });
+    captures.push({ side:state.side, ball:[state.ball[0], state.ball[1]], leash:state.leash, shape:shp });
+    refreshCap();
+    flash(this,"Captured ✓");
+  });
+  document.getElementById("px-copy").addEventListener("click", function(){
+    var t=document.getElementById("pxCapjson");
+    t.focus(); t.select();
+    var ok=false;
+    try { ok=document.execCommand("copy"); } catch(err){}
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(t.value).then(function(){}, function(){});
+      ok=true;
+    }
+    flash(this, ok ? "Copied ✓" : "Select it");
+  });
+  document.getElementById("px-clear").addEventListener("click", function(){
+    captures=[]; refreshCap();
+  });
+
+  if (reduce){
+    Array.prototype.forEach.call(document.querySelectorAll("#tab-predict .p, svg.pxfig #pxBall"), function(n){ n.style.transition="none"; });
+  }
+  leashbox.style.transition = "opacity .3s ease";
+  ghost.style.transition = "opacity .3s ease";
+  drift.style.transition = "opacity .3s ease";
+  render();
+
+  window.__pxOnShow = function(){ pxNames = loadNames(); render(); };
+})();
+
+/* ================= TAB SWITCH ================= */
+(function(){
+  var tb=document.getElementById("tab-btn-board"), tp=document.getElementById("tab-btn-predict");
+  var pb=document.getElementById("tab-board"), pp=document.getElementById("tab-predict");
+  function show(which){
+    var board = which !== "predict";
+    pb.hidden = !board; pp.hidden = board;
+    tb.setAttribute("aria-pressed", board?"true":"false");
+    tp.setAttribute("aria-pressed", board?"false":"true");
+    try { localStorage.setItem("sq-tab", board?"board":"predict"); } catch(e){}
+    if (!board && typeof window.__pxOnShow === "function") window.__pxOnShow();
+    window.scrollTo(0,0);
+  }
+  tb.addEventListener("click", function(){ show("board"); });
+  tp.addEventListener("click", function(){ show("predict"); });
+  var saved = "board";
+  try { saved = localStorage.getItem("sq-tab") || "board"; } catch(e){}
+  if (saved === "predict") show("predict");
 })();
 </script>
 
